@@ -4,7 +4,7 @@
       <template #title> Introducir referencia </template>
       <template #content>
         <span class="p-float-label">
-          <InputText id="url" type="text" v-model="url" />
+          <p-inputtext id="url" type="text" v-model="url"></p-inputtext>
           <label for="url">Url</label>
         </span>
         <Button label="Aceptar" />
@@ -13,11 +13,19 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
+import { Options, Vue } from "vue-class-component";
 import Card from "primevue/card";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import { Ref, ref } from "vue";
+import { ref } from "vue";
 
-const url: Ref<string> = ref();
+@Options({
+  components: {
+    Card,
+    Button,
+  },
+})
+export default class HomeView extends Vue {
+  url = ref();
+}
 </script>

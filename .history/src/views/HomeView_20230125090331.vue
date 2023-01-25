@@ -19,5 +19,5 @@ import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import { Ref, ref } from "vue";
 
-const url: Ref<string> = ref();
+url: Ref<string> = ref();
 </script>

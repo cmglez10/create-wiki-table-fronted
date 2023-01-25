@@ -14,10 +14,25 @@
 </template>
 
 <script setup lang="ts">
+import { Options, Vue } from "vue-class-component";
 import Card from "primevue/card";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import { Ref, ref } from "vue";
 
-const url: Ref<string> = ref();
+const components = defineComponent({
+  Card,
+  Button,
+  InputText,
+});
+@Options({
+  components: {
+    Card,
+    Button,
+    InputText,
+  },
+})
+export default class HomeView extends Vue {
+  url: Ref<string> = ref();
+}
 </script>
