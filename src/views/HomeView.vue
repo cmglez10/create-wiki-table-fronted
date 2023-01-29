@@ -26,7 +26,7 @@ import InputText from "primevue/inputtext";
 import { Ref, ref } from "vue";
 import axios from "axios";
 
-const url: Ref<string> = ref();
+const url: Ref<string> = ref("28516");
 let response: Ref<string> = ref();
 
 async function submit() {
