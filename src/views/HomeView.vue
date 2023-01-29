@@ -12,7 +12,9 @@
     </Card>
     <Card v-if="response">
       <template #title>Resultado</template>
-      <template #content>{{ response }}</template>
+      <template #content>
+        <code>{{ response }}</code>
+      </template>
     </Card>
   </div>
 </template>
@@ -28,6 +30,8 @@ const url: Ref<string> = ref();
 let response: Ref<string> = ref();
 
 async function submit() {
-  response = await axios.get("http://localhost:3000/analyze/" + url.value);
+  response.value = (
+    await axios.get("http://localhost:3000/analyze/" + url.value)
+  )?.data;
 }
 </script>
