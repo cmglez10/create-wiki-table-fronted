@@ -111,7 +111,7 @@ import axios from "axios";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Textarea from "primevue/textarea";
-import { split, filter, upperCase, trimEnd } from "lodash-es";
+import { split, filter, trimEnd } from "lodash-es";
 
 export interface Team {
   position: number;
@@ -127,7 +127,7 @@ export interface Team {
   gd: number;
   sanction: number;
 }
-const BANNED_WORDS_FOR_INITIALS = ["Real"];
+const BANNED_WORDS_FOR_INITIALS = ["Real", "Atlético", "Deportivo", "Beti"];
 
 const url: Ref<string> = ref("28516");
 let teams: Ref<Team[]> = ref();
@@ -141,11 +141,23 @@ async function submit() {
 function getInitials(teamName: string): string {
   const mainPortions = filter(
     split(teamName, " "),
-    (portion) =>
-      portion.length > 2 &&
-      BANNED_WORDS_FOR_INITIALS.findIndex((el) => el === portion) === -1
+    (portion) => portion.length > 2
   );
-  return removeAccents(upperCase(mainPortions[0].substring(0, 3)));
+  let initialsLeft = 3;
+  let portionIndex = 0;
+  let initials = "";
+  while (initialsLeft > 0) {
+    const portion = mainPortions[portionIndex];
+    if (BANNED_WORDS_FOR_INITIALS.findIndex((el) => el === portion) === -1) {
+      initials += portion.substring(0, initialsLeft);
+      initialsLeft = 0;
+    } else {
+      initials += portion.substring(0, 1);
+      initialsLeft--;
+      portionIndex++;
+    }
+  }
+  return removeAccents(initials.toUpperCase());
 }
 
 function removeAccents(str: string): string {
