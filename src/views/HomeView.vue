@@ -1,20 +1,47 @@
 <template>
   <div class="home-container">
     <Card>
-      <template #title> Introducir referencia </template>
+      <template #title>
+        Introducir referencia de liga o eliminatorias
+      </template>
       <template #content>
         <div class="home-searchContainer">
           <span class="p-float-label home-searchFloatLabel">
             <InputText
-              id="url"
+              id="leagueId"
               type="text"
-              v-model="url"
+              v-model="leagueId"
               class="home-searchInput"
             />
-            <label for="url">Url</label>
+            <label for="leagueId">Id de liga</label>
           </span>
+          <div class="home-competitionType">
+            <div class="home-competitionOption">
+              <RadioButton
+                v-model="competitionType"
+                inputId="league"
+                name="competitionType"
+                value="league"
+              />
+              <label for="league" class="ml-2">Liga</label>
+            </div>
+            <div class="home-competitionOption">
+              <RadioButton
+                v-model="competitionType"
+                inputId="playoff"
+                name="competitionType"
+                value="playoff"
+              />
+              <label for="playoff" class="ml-2">Playoffs</label>
+            </div>
+          </div>
           <Button label="Aceptar" @click="submit()" />
         </div>
+      </template>
+    </Card>
+    <Card v-if="loading">
+      <template #content>
+        <div class="home-spinner"><ProgressSpinner /></div>
       </template>
     </Card>
     <Card v-if="teams">
@@ -94,7 +121,13 @@
       </template>
     </Card>
     <Card v-if="teams">
-      <template #title>Resultado</template>
+      <template #title>Liga</template>
+      <template #content>
+        <Textarea class="home-codeTextarea" v-model="wikiCode" />
+      </template>
+    </Card>
+    <Card v-if="playoffs">
+      <template #title>Playoffs</template>
       <template #content>
         <Textarea class="home-codeTextarea" v-model="wikiCode" />
       </template>
@@ -106,12 +139,16 @@
 import Card from "primevue/card";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
+import RadioButton from "primevue/radiobutton";
+import ProgressSpinner from "primevue/progressspinner";
 import { computed, Ref, ref } from "vue";
 import axios from "axios";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Textarea from "primevue/textarea";
-import { split, filter, trimEnd } from "lodash-es";
+import { trimEnd } from "lodash-es";
+import { Utils } from "@/utils/utils";
+import { PlayoffRound, PlayoffUtils } from "@/utils/playoff-utils";
 
 export interface Team {
   position: number;
@@ -127,48 +164,53 @@ export interface Team {
   gd: number;
   sanction: number;
 }
-const BANNED_WORDS_FOR_INITIALS = ["Real", "Atlético", "Deportivo", "Beti"];
 
-const url: Ref<string> = ref("28516");
+enum CompetitionType {
+  LEAGUE = "league",
+  PLAYOFF = "playoff",
+}
+
+const leagueId: Ref<string> = ref();
+const competitionType: Ref<CompetitionType> = ref(CompetitionType.LEAGUE);
 let teams: Ref<Team[]> = ref();
+let playoffs: Ref<PlayoffRound[]> = ref();
+let loading: Ref<boolean> = ref(false);
 
 async function submit() {
-  teams.value = (
-    await axios.get<Team[]>("http://localhost:3000/analyze/" + url.value)
-  )?.data;
-}
-
-function getInitials(teamName: string): string {
-  const mainPortions = filter(
-    split(teamName, " "),
-    (portion) => portion.length > 2
-  );
-  let initialsLeft = 3;
-  let portionIndex = 0;
-  let initials = "";
-  while (initialsLeft > 0) {
-    const portion = mainPortions[portionIndex];
-    if (BANNED_WORDS_FOR_INITIALS.findIndex((el) => el === portion) === -1) {
-      initials += portion.substring(0, initialsLeft);
-      initialsLeft = 0;
-    } else {
-      initials += portion.substring(0, 1);
-      initialsLeft--;
-      portionIndex++;
-    }
+  if (competitionType.value === CompetitionType.LEAGUE) {
+    await getLeague();
+  } else {
+    await getPlayoff();
   }
-  return removeAccents(initials.toUpperCase());
 }
 
-function removeAccents(str: string): string {
-  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+async function getLeague(): Promise<void> {
+  loading.value = true;
+  playoffs.value = undefined;
+  teams.value = undefined;
+  teams.value = (
+    await axios.get<Team[]>("http://localhost:3000/league/" + leagueId.value)
+  )?.data;
+  loading.value = false;
+}
+
+async function getPlayoff(): Promise<void> {
+  loading.value = true;
+  teams.value = undefined;
+  playoffs.value = undefined;
+  playoffs.value = (
+    await axios.get<PlayoffRound[]>(
+      "http://localhost:3000/playoff/" + leagueId.value
+    )
+  )?.data;
+  loading.value = false;
 }
 
 const teamDefinition = computed(() => {
   let res = "";
   for (const team of teams.value) {
     res += `
-|nombre_${getInitials(team.name)}=[[${team.completeName}|${team.name}]]`;
+|nombre_${Utils.getInitials(team.name)}=[[${team.completeName}|${team.name}]]`;
   }
   return res;
 });
@@ -177,13 +219,15 @@ const teamTable = computed(() => {
   let res = "";
   for (const team of teams.value) {
     res += `
-|ganados_${getInitials(team.name)}=${team.won}  |empates_${getInitials(
-      team.name
-    )}=${team.drawn}  |perdidos_${getInitials(team.name)}=${
+|ganados_${Utils.getInitials(team.name)}=${
+      team.won
+    }  |empates_${Utils.getInitials(team.name)}=${
+      team.drawn
+    }  |perdidos_${Utils.getInitials(team.name)}=${
       team.lost
-    } |gf_${getInitials(team.name)}=${team.gf} |gc_${getInitials(team.name)}=${
-      team.ga
-    } <!-- ${team.name} -->`;
+    } |gf_${Utils.getInitials(team.name)}=${team.gf} |gc_${Utils.getInitials(
+      team.name
+    )}=${team.ga} <!-- ${team.name} -->`;
   }
   return res;
 });
@@ -191,17 +235,31 @@ const teamTable = computed(() => {
 const teamOrder = computed(() => {
   let res = "|orden_equipo= ";
   for (const team of teams.value) {
-    res += `${getInitials(team.name)}, `;
+    res += `${Utils.getInitials(team.name)}, `;
   }
   return trimEnd(res, ", ");
 });
 
 const wikiCode = computed(() => {
+  return competitionType.value === CompetitionType.LEAGUE
+    ? wikiCodeLeague.value
+    : wikiCodePlayoff.value;
+});
+
+const wikiCodePlayoff = computed(() => {
+  const code = `
+  == Eliminatorias ==
+  ${PlayoffUtils.getCodePlayoffRounds(playoffs.value)}
+`;
+  return code;
+});
+
+const wikiCodeLeague = computed(() => {
   const code = `
 <!-- '''LEER ESTO ANTES DE ACTUALIZAR:''' Por favor, no olvides actualizar la fecha a través del parámetro ({{parámetro|actualizado}}). -->
 {{#invoke:Football table|main|estilo=WDL
 |actualizado=completo
-|fuente=[https://www.futbol-regional.es/competicion.php?${url.value} Fútbol Regional]
+|fuente=[https://www.futbol-regional.es/competicion.php?${leagueId.value} Fútbol Regional]
 
 <!--Definiciones de los equipos (wikilinks en tabla)-->
 ${teamDefinition.value}
@@ -225,7 +283,19 @@ ${teamOrder.value}
   }
   &-searchContainer {
     display: flex;
+    flex-direction: column;
     gap: 1rem;
+  }
+  &-competitionType {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: space-around;
+  }
+  &-competitionOption {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
   }
   &-searchInput {
     width: 100%;
@@ -236,6 +306,13 @@ ${teamOrder.value}
   &-codeTextarea {
     width: 100%;
     height: 30rem;
+  }
+  &-spinner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 }
 </style>
