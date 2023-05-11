@@ -248,7 +248,7 @@ const wikiCode = computed(() => {
 
 const wikiCodePlayoff = computed(() => {
   const code = `
-  == Eliminatorias ==
+== Eliminatorias ==
   ${PlayoffUtils.getCodePlayoffRounds(playoffs.value)}
 `;
   return code;

@@ -33,7 +33,7 @@ export class PlayoffUtils {
     let res = "";
     for (const playoffRound of playoffs) {
       res += `
-  === ${playoffRound.name} ===
+=== ${playoffRound.name} ===
   ${PlayoffUtils.getCodePlayoffResume(playoffRound.playoffs)}
 
   ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
@@ -49,7 +49,7 @@ export class PlayoffUtils {
       return "";
     }
 
-    let res = `  ==== Cuadro ====
+    let res = `==== Cuadro ====
     {{TwoLegStart|partidos=${maxNumberLegs}}}`;
     for (const playoff of playoffs) {
       const globalResult = PlayoffUtils.getGlobalResult(playoff.matches);
@@ -82,7 +82,7 @@ export class PlayoffUtils {
   }
 
   public static getCodePlayoffMatches(playoffs: Playoff[]) {
-    let res = `  ==== Partidos ====
+    let res = `==== Partidos ====
 `;
 
     for (const playoff of playoffs) {
