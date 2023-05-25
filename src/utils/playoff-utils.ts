@@ -34,9 +34,9 @@ export class PlayoffUtils {
     for (const playoffRound of playoffs) {
       res += `
 === ${playoffRound.name} ===
-  ${PlayoffUtils.getCodePlayoffResume(playoffRound.playoffs)}
+${PlayoffUtils.getCodePlayoffResume(playoffRound.playoffs)}
 
-  ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
+${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
 `;
     }
 
