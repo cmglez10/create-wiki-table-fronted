@@ -189,9 +189,12 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
   }
 
   private static getNormalizeDate(date: string) {
-    const shortDate = split(date, ", ")[1];
-    const d = DateTime.fromFormat(shortDate, "dd-MM-yyyy").setLocale("es-ES");
-    console.log(d);
-    return d.toFormat("[[dd 'de' MMMM]] 'de' [[yyyy]]");
+    try {
+      const shortDate = split(date, ", ")[1];
+      const d = DateTime.fromFormat(shortDate, "dd-MM-yyyy").setLocale("es-ES");
+      return d.toFormat("[[dd 'de' MMMM]] 'de' [[yyyy]]");
+    } catch (e) {
+      return date;
+    }
   }
 }

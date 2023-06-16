@@ -227,7 +227,13 @@ const teamTable = computed(() => {
       team.lost
     } |gf_${Utils.getInitials(team.name)}=${team.gf} |gc_${Utils.getInitials(
       team.name
-    )}=${team.ga} <!-- ${team.name} -->`;
+    )}=${team.ga}`;
+    if (team.sanction !== 0) {
+      res += ` |ajustar_puntos_${Utils.getInitials(team.name)}=${
+        team.sanction
+      }`;
+    }
+    res += ` <!-- ${team.name} -->`;
   }
   return res;
 });
