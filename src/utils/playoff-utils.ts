@@ -7,6 +7,8 @@ export interface PlayoffMatch {
   awayName: string;
   homeCompleteName: string;
   awayCompleteName: string;
+  homeFlag: string;
+  awayFlag: string;
   homeGoals: number;
   awayGoals: number;
   extraTime: boolean;
@@ -33,7 +35,7 @@ export class PlayoffUtils {
     let res = "";
     for (const playoffRound of playoffs) {
       res += `
-=== ${playoffRound.name} ===
+== ${playoffRound.name} ==
 ${PlayoffUtils.getCodePlayoffResume(playoffRound.playoffs)}
 
 ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
@@ -49,7 +51,7 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
       return "";
     }
 
-    let res = `==== Cuadro ====
+    let res = `=== Cuadro ===
     {{TwoLegStart|partidos=${maxNumberLegs}}}`;
     for (const playoff of playoffs) {
       const globalResult = PlayoffUtils.getGlobalResult(playoff.matches);
@@ -58,12 +60,12 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
         | [[${playoff.matches[0].homeCompleteName}|${
         playoff.matches[0].homeName
       }]]
-        | 
+        | ${playoff.matches[0].homeFlag}
         | ${globalResult.homeGoals}-${globalResult.awayGoals}
         | [[${playoff.matches[0].awayCompleteName}|${
         playoff.matches[0].awayName
       }]]
-        | 
+        | ${playoff.matches[0].awayFlag}
         | ganador=${PlayoffUtils.getWinner(globalResult)}`;
       for (const match of playoff.matches) {
         const result = PlayoffUtils.getNormalizeResult(
@@ -82,7 +84,7 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
   }
 
   public static getCodePlayoffMatches(playoffs: Playoff[]) {
-    let res = `==== Partidos ====
+    let res = `=== Partidos ===
 `;
 
     for (const playoff of playoffs) {
@@ -92,8 +94,8 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
 {{Partidos
 | competición = ${PlayoffUtils.getLegName(i + 1)}
 | local = [[${match.homeCompleteName}|${match.homeName}]]
-| paíslocal =
-| paísvisita =
+| paíslocal = ${match.homeFlag}
+| paísvisita = ${match.awayFlag}
 | resultado = ${match.homeGoals}-${match.awayGoals}`;
         if (i === playoff.matches.length - 1) {
           const globalResult = PlayoffUtils.getGlobalResult(playoff.matches);
