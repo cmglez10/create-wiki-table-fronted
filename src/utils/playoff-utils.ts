@@ -1,4 +1,4 @@
-import { split } from "lodash-es";
+import { last, split } from "lodash-es";
 import { DateTime } from "luxon";
 
 export interface PlayoffMatch {
@@ -18,6 +18,7 @@ export interface PlayoffMatch {
 
 export interface Playoff {
   matches: PlayoffMatch[];
+  winner: 1 | 2;
 }
 
 export interface PlayoffRound {
@@ -54,19 +55,23 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
     let res = `=== Cuadro ===
     {{TwoLegStart|partidos=${maxNumberLegs}}}`;
     for (const playoff of playoffs) {
-      const globalResult = PlayoffUtils.getGlobalResult(playoff.matches);
+      let homeNameLink = `[[${playoff.matches[0].homeCompleteName}|${playoff.matches[0].homeName}]]`;
+      let awayNameLink = `[[${playoff.matches[0].awayCompleteName}|${playoff.matches[0].awayName}]]`;
+
+      if (playoff.winner === 1) {
+        homeNameLink = PlayoffUtils.boldName(homeNameLink);
+      } else if (playoff.winner === 2) {
+        awayNameLink = PlayoffUtils.boldName(awayNameLink);
+      }
+
       res += `
       {{TwoLegResult
-        | [[${playoff.matches[0].homeCompleteName}|${
-        playoff.matches[0].homeName
-      }]]
+        | ${homeNameLink}
         | ${playoff.matches[0].homeFlag}
-        | ${globalResult.homeGoals}-${globalResult.awayGoals}
-        | [[${playoff.matches[0].awayCompleteName}|${
-        playoff.matches[0].awayName
-      }]]
+        | ${PlayoffUtils.getGlobalResultTxt(playoff)}
+        | ${awayNameLink}
         | ${playoff.matches[0].awayFlag}
-        | ganador=${PlayoffUtils.getWinner(globalResult)}`;
+        | ganador=${playoff.winner}`;
       for (const match of playoff.matches) {
         const result = PlayoffUtils.getNormalizeResult(
           match,
@@ -81,6 +86,10 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
     res += `
 |}`;
     return res;
+  }
+
+  public static boldName(name: string) {
+    return `'''${name}'''`;
   }
 
   public static getCodePlayoffMatches(playoffs: Playoff[]) {
@@ -109,7 +118,18 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
         }
         res += `
 | visita = [[${match.awayCompleteName}|${match.awayName}]]
-| fecha = ${PlayoffUtils.getNormalizeDate(match.date)} 
+| fecha = ${PlayoffUtils.getNormalizeDate(match.date)} `;
+        if (match.extraTime) {
+          res += `
+| prórroga = sí`;
+        }
+        if (match.homePenalties !== undefined) {
+          res += `
+| resultado penalti = ${match.homePenalties}-${match.awayPenalties}
+| penaltis1 =
+| penaltis2 =`;
+        }
+        res += `
 | estadio =
 | ciudad =
 | asistencia =
@@ -150,14 +170,16 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
     };
   }
 
-  private static getWinner(globalResult: MatchResult) {
-    if (globalResult.homeGoals > globalResult.awayGoals) {
-      return "1";
-    } else if (globalResult.homeGoals < globalResult.awayGoals) {
-      return "2";
-    } else {
-      return "";
+  private static getGlobalResultTxt(playoff: Playoff): string {
+    const globalResult = PlayoffUtils.getGlobalResult(playoff.matches);
+    let result = `${globalResult.homeGoals}-${globalResult.awayGoals}`;
+    const pen = `{{small|''([[Tiros desde el punto penal|pen.]])''}}`;
+
+    if (last(playoff.matches).homePenalties !== undefined) {
+      result = playoff.winner === 1 ? `${pen} ${result}` : `${result} ${pen}`;
     }
+
+    return result;
   }
 
   private static getNormalizeResult(
