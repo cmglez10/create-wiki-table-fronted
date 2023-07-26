@@ -100,20 +100,24 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
       for (let i = 0; i < playoff.matches.length; i++) {
         const match = playoff.matches[i];
         res += `
-{{Partidos
-| competición = ${PlayoffUtils.getLegName(i + 1)}
+{{Partidos`;
+        if (playoff.matches.length > 1) {
+          res += `
+| competición = ${PlayoffUtils.getLegName(i + 1)}`;
+        }
+        res += `
 | local = [[${match.homeCompleteName}|${match.homeName}]]
 | paíslocal = ${match.homeFlag}
 | paísvisita = ${match.awayFlag}
-| resultado = ${match.homeGoals}-${match.awayGoals}`;
-        if (i === playoff.matches.length - 1) {
+| resultado = ${match.homeGoals}:${match.awayGoals}`;
+        if (i > 0 && i === playoff.matches.length - 1) {
           const globalResult = PlayoffUtils.getGlobalResult(playoff.matches);
           if (match.homeName === playoff.matches[0].homeName) {
             res += `
-| global = ${globalResult.homeGoals}-${globalResult.awayGoals}`;
+| global = ${globalResult.homeGoals}:${globalResult.awayGoals}`;
           } else {
             res += `
-| global = ${globalResult.awayGoals}-${globalResult.homeGoals}`;
+| global = ${globalResult.awayGoals}:${globalResult.homeGoals}`;
           }
         }
         res += `
@@ -216,6 +220,7 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
     try {
       const shortDate = split(date, ", ")[1];
       const d = DateTime.fromFormat(shortDate, "dd-MM-yyyy").setLocale("es-ES");
+      return d.toFormat("{{'fecha'|dd|MM|yyyy}}");
       return d.toFormat("[[dd 'de' MMMM]] 'de' [[yyyy]]");
     } catch (e) {
       return date;
