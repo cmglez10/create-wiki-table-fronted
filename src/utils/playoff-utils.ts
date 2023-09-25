@@ -139,6 +139,7 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
 | asistencia =
 | refe =
 | reporte =
+| estado = plegada
 }}
         `;
       }
