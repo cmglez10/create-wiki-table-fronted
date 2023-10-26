@@ -32,21 +32,27 @@ interface MatchResult {
 }
 
 export class PlayoffUtils {
-  public static getCodePlayoffRounds(playoffs: PlayoffRound[]) {
+  public static getCodePlayoffRounds(
+    playoffs: PlayoffRound[],
+    options?: { flags: boolean }
+  ) {
     let res = "";
     for (const playoffRound of playoffs) {
       res += `
 == ${playoffRound.name} ==
-${PlayoffUtils.getCodePlayoffResume(playoffRound.playoffs)}
+${PlayoffUtils.getCodePlayoffResume(playoffRound.playoffs, options)}
 
-${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
+${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs, options)}
 `;
     }
 
     return res;
   }
 
-  public static getCodePlayoffResume(playoffs: Playoff[]) {
+  public static getCodePlayoffResume(
+    playoffs: Playoff[],
+    options?: { flags: boolean }
+  ) {
     const maxNumberLegs = PlayoffUtils.getMaxNumberLegs(playoffs);
     if (maxNumberLegs <= 1) {
       return "";
@@ -67,10 +73,10 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
       res += `
       {{TwoLegResult
         | ${homeNameLink}
-        | ${playoff.matches[0].homeFlag}
+        | ${options.flags ? playoff.matches[0].homeFlag : ""}
         | ${PlayoffUtils.getGlobalResultTxt(playoff)}
         | ${awayNameLink}
-        | ${playoff.matches[0].awayFlag}
+        | ${options.flags ? playoff.matches[0].awayFlag : ""}
         | ganador=${playoff.winner}`;
       for (const match of playoff.matches) {
         const result = PlayoffUtils.getNormalizeResult(
@@ -92,7 +98,10 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
     return `'''${name}'''`;
   }
 
-  public static getCodePlayoffMatches(playoffs: Playoff[]) {
+  public static getCodePlayoffMatches(
+    playoffs: Playoff[],
+    options?: { flags: boolean }
+  ) {
     let res = `=== Partidos ===
 `;
 
@@ -107,8 +116,8 @@ ${PlayoffUtils.getCodePlayoffMatches(playoffRound.playoffs)}
         }
         res += `
 | local = [[${match.homeCompleteName}|${match.homeName}]]
-| paíslocal = ${match.homeFlag}
-| paísvisita = ${match.awayFlag}
+| paíslocal = ${options.flags ? match.homeFlag : ""}
+| paísvisita = ${options.flags ? match.awayFlag : ""}
 | resultado = ${match.homeGoals}:${match.awayGoals}`;
         if (i > 0 && i === playoff.matches.length - 1) {
           const globalResult = PlayoffUtils.getGlobalResult(playoff.matches);

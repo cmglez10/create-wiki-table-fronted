@@ -34,6 +34,10 @@
               />
               <label for="playoff" class="ml-2">Playoffs</label>
             </div>
+            <div class="home-getFlags">
+              <Checkbox v-model="getFlags" :binary="true" />
+              <label>Incluir banderas</label>
+            </div>
           </div>
           <Button label="Aceptar" @click="submit()" />
         </div>
@@ -146,6 +150,7 @@ import axios from "axios";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Textarea from "primevue/textarea";
+import Checkbox from "primevue/checkbox";
 import { trimEnd } from "lodash-es";
 import { Utils } from "@/utils/utils";
 import { PlayoffRound, PlayoffUtils } from "@/utils/playoff-utils";
@@ -172,6 +177,7 @@ enum CompetitionType {
 
 const leagueId: Ref<string> = ref();
 const competitionType: Ref<CompetitionType> = ref(CompetitionType.LEAGUE);
+const getFlags: Ref<boolean> = ref(true);
 let teams: Ref<Team[]> = ref();
 let playoffs: Ref<PlayoffRound[]> = ref();
 let loading: Ref<boolean> = ref(false);
@@ -254,7 +260,9 @@ const wikiCode = computed(() => {
 
 const wikiCodePlayoff = computed(() => {
   const code = `
-  ${PlayoffUtils.getCodePlayoffRounds(playoffs.value)}
+  ${PlayoffUtils.getCodePlayoffRounds(playoffs.value, {
+    flags: getFlags.value,
+  })}
 `;
   return code;
 });
@@ -297,7 +305,8 @@ ${teamOrder.value}
     gap: 1rem;
     justify-content: space-around;
   }
-  &-competitionOption {
+  &-competitionOption,
+  &-getFlags {
     display: flex;
     gap: 1rem;
     align-items: center;
