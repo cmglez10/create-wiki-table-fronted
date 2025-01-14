@@ -38,6 +38,24 @@
               <Checkbox v-model="getFlags" :binary="true" />
               <label>Incluir banderas</label>
             </div>
+            <div class="home-competitionOption">
+              <RadioButton
+                v-model="competitionSection"
+                inputId="masc"
+                name="competitionSection"
+                value="m"
+              />
+              <label for="masc" class="ml-2">Masculino</label>
+            </div>
+            <div class="home-competitionOption">
+              <RadioButton
+                v-model="competitionSection"
+                inputId="fem"
+                name="competitionSection"
+                value="f"
+              />
+              <label for="fem" class="ml-2">Femenino</label>
+            </div>
           </div>
           <Button label="Aceptar" @click="submit()" />
         </div>
@@ -175,8 +193,16 @@ enum CompetitionType {
   PLAYOFF = "playoff",
 }
 
+enum CompetitionSection {
+  MASC = "m",
+  FEM = "f",
+}
+
 const leagueId: Ref<string> = ref();
 const competitionType: Ref<CompetitionType> = ref(CompetitionType.LEAGUE);
+const competitionSection: Ref<CompetitionSection> = ref(
+  CompetitionSection.MASC
+);
 const getFlags: Ref<boolean> = ref(true);
 let teams: Ref<Team[]> = ref();
 let playoffs: Ref<PlayoffRound[]> = ref();
@@ -194,9 +220,8 @@ async function getLeague(): Promise<void> {
   loading.value = true;
   playoffs.value = undefined;
   teams.value = undefined;
-  teams.value = (
-    await axios.get<Team[]>("http://localhost:3000/league/" + leagueId.value)
-  )?.data;
+  const url = `http://localhost:3000/league/${leagueId.value}/section/${competitionSection.value}`;
+  teams.value = (await axios.get<Team[]>(url))?.data;
   loading.value = false;
 }
 
